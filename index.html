@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Quiz Registration</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: #f5f5f5;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 30px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            flex: 1;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #2c3e50;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="tel"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .primary-button {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .primary-button:hover {
+            background-color: #2980b9;
+        }
+
+        .quiz-container {
+            display: none;
+        }
+
+        .question-container {
+            margin-bottom: 30px;
+        }
+
+        .option-container {
+            margin-bottom: 10px;
+        }
+
+        .option-label {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .option-label:hover {
+            background-color: #f5f5f5;
+        }
+
+        input[type="radio"] {
+            margin-right: 10px;
+        }
+
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+        }
+
+        .nav-button {
+            padding: 12px 20px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .nav-button:hover {
+            background-color: #2980b9;
+        }
+
+        .submit-button {
+            background-color: #2ecc71;
+        }
+
+        .submit-button:hover {
+            background-color: #27ae60;
+        }
+
+        footer {
+            text-align: center;
+            padding: 20px;
+            background-color: #2c3e50;
+            color: white;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            margin-top: 5px;
+            font-size: 14px;
+            display: none;
+        }
+
+        .active {
+            display: block;
+        }
+
+        /* Timer Styles */
+        .timer-container {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 16px;
+            font-weight: bold;
+            display: none;
+        }
+
+        .timer-container.warning {
+            color: #f39c12;
+        }
+
+        .timer-container.danger {
+            color: #e74c3c;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Skill Assessment</h1>
+        <div id="timer-container" class="timer-container">
+            Time Left: <span id="timer">15:00</span>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Registration Form -->
+        <div id="registration-container">
+            <h1>Registration</h1>
+            <form id="registration-form">
+                <div class="form-group">
+                    <label for="name">Full Name</label>
+                    <input type="text" id="name" required>
+                    <div class="error-message" id="name-error">Please enter your full name</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input type="email" id="email" required>
+                    <div class="error-message" id="email-error">Please enter a valid email address</div>
+                </div>
+                
+                <div class="form-group">
+                    <label for="phone">Phone Number</label>
+                    <input type="tel" id="phone" required>
+                    <div class="error-message" id="phone-error">Please enter a valid phone number</div>
+                </div>
+                
+                <button type="submit" class="primary-button">Attempt Test</button>
+            </form>
+        </div>
+
+        <!-- Quiz Section -->
+        <div id="quiz-container" class="quiz-container">
+            <h1 id="question-title">Question 1</h1>
+            
+            <div class="question-container">
+                <p id="question-text">This is a sample question text?</p>
+                
+                <div class="option-container">
+                    <label class="option-label">
+                        <input type="radio" name="current-question" value="A">
+                        <span id="option-a">Option A</span>
+                    </label>
+                </div>
+                
+                <div class="option-container">
+                    <label class="option-label">
+                        <input type="radio" name="current-question" value="B">
+                        <span id="option-b">Option B</span>
+                    </label>
+                </div>
+                
+                <div class="option-container">
+                    <label class="option-label">
+                        <input type="radio" name="current-question" value="C">
+                        <span id="option-c">Option C</span>
+                    </label>
+                </div>
+                
+                <div class="option-container">
+                    <label class="option-label">
+                        <input type="radio" name="current-question" value="D">
+                        <span id="option-d">Option D</span>
+                    </label>
+                </div>
+            </div>
+            
+            <div class="navigation-buttons">
+                <button id="prev-button" class="nav-button">Previous</button>
+                <button id="next-button" class="nav-button">Next</button>
+                <button id="submit-button" class="nav-button submit-button" style="display: none;">Submit</button>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 School Assessment</p>
+    </footer>
+
+    <script>
+        // Sample questions
+        
+        const questions = [
+            {
+                question: "What does HTML stand for?",
+                options: [
+                    "Hyper Text Markup Language",
+                    "High Tech Modern Language",
+                    "Hyper Transfer Markup Language",
+                    "Hyper Technical Machine Learning"
+                ],
+                answer: null
+            },
+            {
+                question: "Which of the following is a JavaScript framework?",
+                options: [
+                    "Django",
+                    "Flask",
+                    "React",
+                    "Laravel"
+                ],
+                answer: null
+            },
+            {
+                question: "Which CSS property is used to change the text color?",
+                options: [
+                    "font-color",
+                    "text-color",
+                    "color",
+                    "text-style"
+                ],
+                answer: null
+            },
+            {
+                question: "What is the correct way to link an external JavaScript file?",
+                options: [
+                    "<script href='script.js'>",
+                    "<script name='script.js'>",
+                    "<script src='script.js'>",
+                    "<javascript src='script.js'>"
+                ],
+                answer: null
+            },
+            {
+                question: "Which of these is NOT a valid CSS selector?",
+                options: [
+                    ".class",
+                    "#id",
+                    "*",
+                    "!element"
+                ],
+                answer: null
+            }
+        ];
+
+        // User data object
+        let userData = {
+            name: "",
+            email: "",
+            phone: "",
+            responses: []
+        };
+
+        // Current question index
+        let currentQuestionIndex = 0;
+
+        // Timer variables
+        let timeLeft = 15 * 60; // 15 minutes in seconds
+        let timerInterval;
+        let timerElement = document.getElementById('timer');
+        let timerContainer = document.getElementById('timer-container');
+
+        // DOM Elements
+        const registrationForm = document.getElementById('registration-form');
+        const registrationContainer = document.getElementById('registration-container');
+        const quizContainer = document.getElementById('quiz-container');
+        const questionTitle = document.getElementById('question-title');
+        const questionText = document.getElementById('question-text');
+        const optionA = document.getElementById('option-a');
+        const optionB = document.getElementById('option-b');
+        const optionC = document.getElementById('option-c');
+        const optionD = document.getElementById('option-d');
+        const prevButton = document.getElementById('prev-button');
+        const nextButton = document.getElementById('next-button');
+        const submitButton = document.getElementById('submit-button');
+        const radioButtons = document.getElementsByName('current-question');
+
+        // Initialize quiz responses
+        for (let i = 0; i < questions.length; i++) {
+            userData.responses.push(null);
+        }
+
+        // Timer function
+        function startTimer() {
+            // Show timer container
+            timerContainer.style.display = 'block';
+            
+            timerInterval = setInterval(function() {
+                timeLeft--;
+                
+                // Update display
+                const minutes = Math.floor(timeLeft / 60);
+                const seconds = timeLeft % 60;
+                timerElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                
+                // Change styling based on time left
+                if (timeLeft <= 60) { // last minute
+                    timerContainer.classList.add('danger');
+                } else if (timeLeft <= 180) { // last 3 minutes
+                    timerContainer.classList.add('warning');
+                }
+                
+                // Auto-submit when time runs out
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    submitQuiz();
+                }
+            }, 1000);
+        }
+
+        // Registration form submission
+        registrationForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Validate inputs
+            const nameInput = document.getElementById('name');
+            const emailInput = document.getElementById('email');
+            const phoneInput = document.getElementById('phone');
+            const nameError = document.getElementById('name-error');
+            const emailError = document.getElementById('email-error');
+            const phoneError = document.getElementById('phone-error');
+            
+            let isValid = true;
+            
+            // Reset error states
+            nameError.style.display = 'none';
+            emailError.style.display = 'none';
+            phoneError.style.display = 'none';
+            
+            // Validate name
+            if (!nameInput.value.trim()) {
+                nameError.style.display = 'block';
+                isValid = false;
+            }
+            
+            // Validate email
+            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailPattern.test(emailInput.value.trim())) {
+                emailError.style.display = 'block';
+                isValid = false;
+            }
+            
+            // Validate phone
+            const phonePattern = /^\d{10}$/;
+            if (!phonePattern.test(phoneInput.value.trim())) {
+                phoneError.style.display = 'block';
+                isValid = false;
+            }
+            
+            if (isValid) {
+                // Save user data
+                userData.name = nameInput.value.trim();
+                userData.email = emailInput.value.trim();
+                userData.phone = phoneInput.value.trim();
+                
+                // Switch to quiz
+                registrationContainer.style.display = 'none';
+                quizContainer.style.display = 'block';
+                
+                // Start the timer
+                startTimer();
+                
+                // Load first question
+                loadQuestion(0);
+            }
+        });
+
+        // Load question based on index
+        function loadQuestion(index) {
+            if (index < 0 || index >= questions.length) return;
+            
+            const question = questions[index];
+            
+            // Update question number and text
+            questionTitle.textContent = `Question ${index + 1}`;
+            questionText.textContent = question.question;
+            
+            // Update options
+            optionA.textContent = question.options[0];
+            optionB.textContent = question.options[1];
+            optionC.textContent = question.options[2];
+            optionD.textContent = question.options[3];
+            
+            // Clear radio selection
+            radioButtons.forEach(radio => {
+                radio.checked = false;
+            });
+            
+            // Check saved answer if exists
+            if (userData.responses[index] !== null) {
+                const savedAnswer = userData.responses[index];
+                radioButtons[savedAnswer].checked = true;
+            }
+            
+            // Update button visibility
+            prevButton.style.display = index === 0 ? 'none' : 'block';
+            nextButton.style.display = index === questions.length - 1 ? 'none' : 'block';
+            submitButton.style.display = index === questions.length - 1 ? 'block' : 'none';
+            
+            // Update current index
+            currentQuestionIndex = index;
+        }
+
+        // Save current question response
+        function saveResponse() {
+            let selectedValue = null;
+            
+            for (let i = 0; i < radioButtons.length; i++) {
+                if (radioButtons[i].checked) {
+                    selectedValue = i;
+                    break;
+                }
+            }
+            
+            userData.responses[currentQuestionIndex] = selectedValue;
+            questions[currentQuestionIndex].answer = selectedValue;
+        }
+        // First, add this script tag in the head section to include the XLSX library
+
+
+// Add this function to handle Excel export
+        function exportToExcel(submissionData) {
+    // Create worksheet data
+            const wsData = [
+        // Header row for user info
+            ['User Information'],
+            ['Name', 'Email', 'Phone'],
+            [submissionData.userInfo.name, submissionData.userInfo.email, submissionData.userInfo.phone],
+         [], // Empty row for spacing
+        
+        // Quiz response headers
+        ['Quiz Responses'],
+        ['Question Number', 'Question', 'Selected Option'],
+        
+        // Quiz responses data
+        ...submissionData.quizResponses.map(response => [
+            response.questionNumber,
+            response.question,
+            response.selectedOption || 'Not answered'
+        ]),
+        
+        [], // Empty row for spacing
+        
+        // Summary section
+        ['Summary'],
+        ['Total Questions', submissionData.summary.totalQuestions],
+        ['Questions Answered', submissionData.summary.answered],
+        ['Questions Unanswered', submissionData.summary.unanswered],
+        ['Time Spent (minutes)', Math.round(submissionData.summary.timeSpent / 60)]
+    ];
+
+    // Create worksheet
+    const ws = XLSX.utils.aoa_to_sheet(wsData);
+
+    // Set column widths
+    const cols = [
+        { wch: 15 }, // A
+        { wch: 50 }, // B
+        { wch: 30 }  // C
+    ];
+    ws['!cols'] = cols;
+
+    // Create workbook
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Quiz Results');
+
+    // Generate filename with timestamp
+    const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const filename = `quiz_results_${submissionData.userInfo.name.replace(/\s+/g, '_')}_${timestamp}.xlsx`;
+
+    // Save file
+    XLSX.writeFile(wb, filename);
+}
+
+// Modify the submitQuiz function to include Excel export
+function submitQuiz() {
+    // Existing code remains the same until the submissionData creation...
+    
+    // After creating submissionData, add:
+    try {
+        exportToExcel(submissionData);
+    } catch (error) {
+        console.error('Error exporting to Excel:', error);
+    }
+    
+    // Hide timer
+    timerContainer.style.display = 'none';
+    
+    // Update the completion message to include download notification
+    quizContainer.innerHTML = `
+        <h1>Test Completed</h1>
+        <div class="question-container">
+            <p>Thank you for completing the test, ${userData.name}.</p>
+            <p>Your responses have been saved and downloaded as an Excel file.</p>
+            <p>You answered ${answered} out of ${questions.length} questions.</p>
+            <pre style="background: #f5f5f5; padding: 15px; overflow: auto; margin-top: 20px;">
+                ${JSON.stringify(submissionData, null, 2)}
+            </pre>
+        </div>
+    `;
+    
+    console.log("Quiz Submission:", submissionData);
+}
+
+        // Submit quiz function
+        function submitQuiz() {
+            // Save current response
+            saveResponse();
+            
+            // Stop timer
+            clearInterval(timerInterval);
+            
+            // Calculate results
+            const answered = userData.responses.filter(response => response !== null).length;
+            
+            // Create final submission object
+            const submissionData = {
+                userInfo: {
+                    name: userData.name,
+                    email: userData.email,
+                    phone: userData.phone
+                },
+                quizResponses: userData.responses.map((response, index) => {
+                    return {
+                        questionNumber: index + 1,
+                        question: questions[index].question,
+                        selectedOption: response !== null ? questions[index].options[response] : null
+                    };
+                }),
+                summary: {
+                    totalQuestions: questions.length,
+                    answered: answered,
+                    unanswered: questions.length - answered,
+                    timeSpent: (15 * 60 - timeLeft) // seconds spent on quiz
+                }
+            };
+            
+            // Hide timer
+            timerContainer.style.display = 'none';
+            
+            // Display completion message (in real app, you'd send this data to your server)
+            quizContainer.innerHTML = `
+                <h1>Test Completed</h1>
+                <div class="question-container">
+                    <p>Thank you for completing the test, ${userData.name}.</p>
+                    <p>Your responses have been saved.</p>
+                    <p>You answered ${answered} out of ${questions.length} questions.</p>
+                    <pre style="background: #f5f5f5; padding: 15px; overflow: auto; margin-top: 20px;">
+                        
+                    </pre>
+                </div>
+            `;
+            
+            console.log("Quiz Submission:", submissionData);
+            
+            // In a real application, you would send this data to your server:
+            /*
+            fetch('/api/submit-quiz', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(submissionData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+            */
+        }
+
+        // Event listeners for navigation
+        prevButton.addEventListener('click', function() {
+            saveResponse();
+            loadQuestion(currentQuestionIndex - 1);
+        });
+
+        nextButton.addEventListener('click', function() {
+            saveResponse();
+            loadQuestion(currentQuestionIndex + 1);
+        });
+
+        submitButton.addEventListener('click', submitQuiz);
+    </script>
+</body>
+</html>
